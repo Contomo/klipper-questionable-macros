@@ -25,3 +25,5 @@ pro tip, you can add
     {%- endif -%}
 ```
 at the bottom of your gcode macro macro templates to be able to test the macros in them.
+ 
+a small note on the `lookup_object` timing. i cant recommend calling those during time critical steps. the whole lookup object call takes quite a bit.
