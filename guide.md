@@ -176,10 +176,8 @@ to retrieve those, one may access them like `{% set cleaned = printer['gcode_mac
 **VERY IMPORTANT ENDING NOTE**
 variables **MUST** always be all lowercase!
 
-### Jinja Macros
-
-Reusable blocks of Jinja2 code.
-
+### more jinja horrors
+- **macros** (reusable blocks of Jinja2 code)
 ```jinja
 [gcode_macro HELLO_WORLD]
   {% macro greet(name) %}
@@ -198,7 +196,32 @@ a couple gotchas with macros.
 
 what can we do about it?... whitespace control
 - `{%- set something = something -%}` will strip the newlines returned from a macro.
-- simply never return. you can use a `namespace` to hand into the macro, simply modify the namespace handed in, and discard the mess of newlines returned.
+- simply never return. you can use any mutable (`namespace`, `list`, `dict`) to hand into the macro, simply modify that instead and discard the mess of newlines returned.
+
+
+
+- **cycler**
+```jinja
+[gcode_macro SHAKE]
+  {% set direction = cycler(-1, 1) %}
+  {% for _ in range(20) %}
+    G0 X{direction}
+  {% endfor %}
+```
+G0 X-1... -> G0 X1..... ->G0 X-1.......
+(yeah... it cycles through the "list")
+
+- **joiner/lipsum** (not really needed but its there)
+```jinja
+{% set comma = joiner(', ') %}
+{% for param in params %}{comma()}{param}{% endfor %}
+```
+-> X=1, Y=1, Z=1 
+(doesnt end in a comma, obmitted if last)
+`lipsum(n=3)` to generate lorem ipsum text
+
+
+
 
 
 ### Save Variables & Delayed Gcode
@@ -209,27 +232,6 @@ Saving state:
 SAVE_VARIABLE VARIABLE=my_setting VALUE="42" # the string 42
 SAVE_VARIABLE VARIABLE=my_setting VALUE={{}} # an empty dict.
 ```
-
-
-### Simple Display Templates
-
-```ini
-[display_template simple_color]
-param_r: 1.0
-param_g: 0.5
-param_b: 0.0
-param_w: 0.0
-text:
-  {param_r},{param_g},{param_b},{param_w}
-```
-
-Apply template:
-
-```gcode
-SET_LED_TEMPLATE LED=led1 TEMPLATE=simple_color
-```
-
----
 
 ## Advanced Advanced
 
@@ -248,7 +250,6 @@ for example (not that you should) one may use the above in an LED template to sh
 issues comes in when youre trying to home, and realise that its messing with that too.
 
 
-### Advanced Parameter Passing
 
 
 
