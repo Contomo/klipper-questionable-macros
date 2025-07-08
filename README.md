@@ -19,9 +19,9 @@ technically, if you helpers dont require context, you can omit the globals. (or 
 pro tip, you can add 
 ```ini
     {%- if rawparams and 'DATA' in params -%}
-        RESPOND MSG="returned: {self._TemplateReference__context[params.MACRO](params.DATA)}"
-    {%- elif rawparams -%}
-        RESPOND MSG="returned: {self._TemplateReference__context[params.MACRO]()}"
+        {action_respond_info("returned: " ~ self._TemplateReference__context[params.MACRO](params.DATA))}
+    {%- elif rawparams and 'MACRO' in params -%}
+        {action_respond_info("returned: " ~ self._TemplateReference__context[params.MACRO]())}
     {%- endif -%}
 ```
 at the bottom of your gcode macro macro templates to be able to test the macros in them.
