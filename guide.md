@@ -45,7 +45,7 @@ gcode:
 Calling `HOME` just outputs `G28` to Klipper.
 
 ## 2   Core objects
-### Special objects ▪ `printer`, `params`, `rawparams`  <a id="special-objects"></a>
+### Special objects `printer`, `params`, `rawparams` *(`self`)*
 
 | Object      | What it is                                                                 |
 | ----------- | -------------------------------------------------------------------------- |
