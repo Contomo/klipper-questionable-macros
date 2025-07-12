@@ -23,7 +23,7 @@
 
 ### **Advanced**
 
-1. [Writing reusable Jinja *macros*](#1-writing-reusable-jinja-macros) *([more of that here](helpers/README.md))*
+1. [Writing reusable Jinja *macros*](#1-writing-reusable-jinja-macros) *([more of that here](helpers))*
 2. [Complex variable types & advanced filters](#2-complex-variable-types--advanced-filters)
 3. [Direct object access](#3-direct-object-access)
 
@@ -190,7 +190,7 @@ This example uses a `for-else` loop to process axis parameters and raises an err
 # Advanced
 
 ### 1. Writing reusable Jinja *macros*
-> **[See further examples](helpers/README.md)**
+> **[See further examples](helpers)**
 
 Not to be confused with G-code macros, these are for reusable template logic.
   ```nunjucks
