@@ -17,14 +17,28 @@ gcode:
 
 
 ## Usage
-
-```nunjucks
-[gcode_macro MATH_TEST]
-gcode:
-    {% import math as math %}
-    RESPOND MSG={math.sin(math.pi)}
-```
-
+- just all
+  ```nunjucks
+  [gcode_macro MATH_TEST]
+  gcode:
+      {% import math as math %}
+      RESPOND MSG={math.sin(math.pi)}
+  ```
+- only one
+  ```nunjucks
+  [gcode_macro MATH_TEST]
+  gcode:
+      {% from math import sin, pi %}
+      RESPOND MSG={sin(pi)}
+  ```
+- import and also add your `printer`, `action_<respond/raise>_<info/error...>` to that template
+  ```nunjucks
+  [gcode_macro MATH_TEST]
+  gcode:
+      {% import math as math with context %}
+      RESPOND MSG={math.something_that_uses_action_respond("hello")}
+  ```
+*(it do be as simple as that, yes)*
 
 ## Loading
 Klipper doesnt nativly offer a file loading, that means, when you try to use `{% import ... as ... %}` you usually get an error.
@@ -61,4 +75,20 @@ gcode:
         { action_respond_info("No templates found to load for import.") }
     {% endif %}
 
+```
+
+
+---
+
+**Optionally if you dont want to do that**
+```nunjucks
+[gcode_macro DO_SOMETHING_WITH_CFG_HELPERS]
+gcode:
+    {% set template = printer.configfile.settings['gcode_macro _save_config_helper'].gcode %}
+    {% set gcode_macro = printer.printer.lookup_object('gcode_macro') %}
+    {% set cfg_helper_no_context   = gcode_macro.env.from_string(template).module %}
+    {% set cfg_helper_full_context = gcode_macro.env.from_string(_lib_cfg, globals=self._TemplateReference__context).module %}
+
+    {cfg_helper_full_context.save_config_unstage('stepper_y', 'rotation_distance')}
+    {cfg_helper_full_context.save_config_stage  ('stepper_x', 'rotation_distance', 40.999)}
 ```
