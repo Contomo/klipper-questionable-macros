@@ -1,260 +1,306 @@
-# Comprehensive Jinja2 & Klipper Macros Guide
+# Klipper Macros & Jinja2 ‑ A Practical Guide
 
-This guide provides a clear and concise breakdown of klipper macros and its involvement of Jinja2
+> **Strings in ➜ Strings out.**  Everything you feed Klipper is just text. Master that, and you master macros.
 
-## Table of Contents
-
-1. [Basic](#basic)
-2. [getting started](#getting_started)
-3. [Advanced](#advanced)
-4. [Advanced Advanced](#advanced-advanced)
 
 ---
 
-## **Basic**
+## Table of Contents
+
+### Beginner
+
+1. What *is* a template?
+2. Core objects: `printer`, `params`, `rawparams`
+3. Basic macro anatomy
+4. Defensive techniques
+
+### Medium
+
+1. Delayed G‑code & variable storage
+2. For‑loops, namespaces, mutables
+3. Writing reusable Jinja *macros*
+4. Utility helpers (`cycler`, `joiner`, …)
+
+### Advanced
+
+1. Complex variable types
+2. Direct object access
+3. Performance / caveats
 
 ---
-### **getting started**
 
-I think the most basic thing that we need to understand is that jinja2 is a templating engine. 
-That means, explained very simply, it is not much more then Notepad++ search and replace.
-gcode macros, are very similar in that way. the output of a gcode macro will **always** be text.
-your console, the gcode file youre printing, the macros youre running are all doing one thing. inputting text as commands into klipper.
-example:
-```jinja
+# Beginner
+
+## 1   What is a template?
+
+A Jinja2 template is search–replace on steroids.  Feed it *context* → it renders *text*.
+
+```nunjucks
 [gcode_macro HOME]
+description: Home all axes
 gcode:
-  G28
+  G28            # renders exactly this line
 ```
-calling `HOME` in the console, a gcode file, or a macro will always cause the string response `G28` to be printed and "evaluated"
 
----
-### **ninjago**
+Calling `HOME` just outputs `G28` to Klipper.
 
-our templating engine uses `{ }` to evaluate variables, or `{% %}` to evaluate (for us almost exclusively) conditionals.
-klipper provides:
-* `printer` -> is a snapshot of our current state.
-* `params` -> is a key value dict of the parameters passed in (stringified)
-* `rawparams` -> the raw string of parameters, including spaces etc..
+## 2   Core objects
+### Special objects ▪ `printer`, `params`, `rawparams`  <a id="special-objects"></a>
 
-using jinja we can evaluate those. the printer object contains our more complex objects which hold all information we need.
+| Object      | What it is                                                                 |
+| ----------- | -------------------------------------------------------------------------- |
+| `printer`   | Snapshot of *everything*: config, sensors, toolhead, temps… (actual values)|
+| `params`    | Dict of named arguments passed to your macro — **all values are strings**! |
+| `rawparams` | The raw text after the macro name (spaces included).                       |
 
-**all information?** *yes*
+## 3   Macro anatomy
 
-this printer object contains not only our configuration (printer.settings.config) but also a snapshot of our current state.
-
-strings in strings out. thats the gist of it.
-basic jinja evaluation: `{'G28'}` == `G28` == `"{'G28'}"` jinja evaluates it to the string 'G28' and thats all that klipper cares about.
-
-
----
-### **Usage of the printer object**
-
-```jinja
-[gcode_macro TEMPERATURE_EXAMPLE]
+```nunjucks
+[gcode_macro TEMP_REPORT]
+description: Show current hotend temp
 gcode:
   {% set temp = printer.extruder.temperature %}
-  RESPOND MSG={"extruder temperature is: ' ~ temp ~ "°C'"}
+  RESPOND MSG="Hotend is {temp} °C"
 ```
-do note in this example that there isnt only one way to do things. `~` is a special operator, think of it like `+` but "forcing" the output to be a string.
-`{"RESPOND MSG=extruder temperature is: '" ~ temp ~ "°C'"}` would be equally valid.
 
-`params.TEMP` is always going to be a string. to prevent klipper from erroring with `.` key access in our dict, one may use `.get()` for safer access. (`params.get('TEMP', 220)`) where here, 220 is the fallback.
-equal and more "valid" would be to use the `|default()` filter. (`params.TEMP|default(220)`) (mainly because mainsail recognizes this as the "default" value for a parameter and thus shows it in the gui)
-oh, dictionary is what it says. its a book, containing our words with their assigned value. 
+*Logic* lives in `{% … %}`.  Output placeholders use single braces `{ … }`.
 
+## 4   Defensive techniques
 
----
-### **Available Filters**
+Common filters you’ll use daily:
+`int`, `float`, `default`, `round`, `upper`, `lower`, `replace`, `join`, `length`, `sum`
 
-So what do you do with those useless strings?
-* Use explicit filters to convert between types (`|int`, `|float`, etc)
-some common filters would be:
-- `default, int, float, string, round, lower, upper, replace, join, length, count, list, last, abs, max, min, sum, format, trim`
-
-and some more uncommon ones:
-- `map, select, reject, rejectattr, sort, dictsort, items, safe, e, escape, title, capitalize, truncate, indent, batch, center, slice, unique, reverse, random, pprint, filesizeformat, wordcount, wordwrap, urlencode, urlize, xmlattr, d`
-
-for building even the simplest macros, you can refer to my search macros to let you browse the printer object a bit which makes it easier to find the variables youre looking for.
-
-
----
-### **For Loops & Namespacing**
-
-Once youre stringing around with `{% if something is equal not_something %} {something} {% endif %}`
-you may want to make things more efficent or deduplicate giant if else endif gunk.
-For loops:
-```jinja
-{% set min_y = printer.configfile.config["stepper_y"]["position_min"]|float %}
-{% set max_y = printer.configfile.config["stepper_y"]["position_max"]|float %}
-{% set min_x = printer.configfile.config["stepper_x"]["position_min"]|float %}
-{% set max_x = printer.configfile.config["stepper_x"]["position_max"]|float %}
-{% if params.X < max_x or params.X > min_x %}....
-  G0 X{params.X}
-```
-(you can see this getting repetetive)
-Instead you can use a for loop.
-```jinja
-{% set allowed_move = True %}
-{% for axis in ['x', 'y'] %}
-  {% if params[axis] > printer.configfile.config["stepper_" ~ axis]["position_max]|float %}
-    {% set allowed_move = False %}
-  {% endif %}
-{% endfor %}
-```
-If you didnt read from the start you may have missed it, but there are critical errors:
-- `params[axis]` is not protected, if X or Y isnt supplied by the user, the macro crashes.
-- `params[axis]` returns a string! we cannot compare a `string` to a `float`!
-- `{% set allowed_move = False %}` is never being retained... why?
-  
----
-**Namespacing:**
-- a namespace is a window we are in. a for loop is a different "namespace" thus values arent retained outside
-- `{% set allowed_move = False %}` would set the local to the for loop "`allowed_move`" to false, and immediately discard it.
-```jinja
-{% set ns = namespace(counter=0) %}
-{% for i in range(5) %}
-  {% set ns.counter = ns.counter + i %}
-{% endfor %}
-RESPOND MSG="{ns.counter}"
-=>
-// 10
-```
-a namespace of course isnt the only way around it. we can trick jinja by setting the return type of functions like `append` or `update`
-(hint, they return `None` :P)
-```jinja
-{% set allowed_axis = [] %}
-{% for axis in ['x', 'y'] %}
-  {% if params[axis]|default(-999)|float < printer.configfile.config["stepper_" ~ axis]["position_max]|float %}
-    {% if params.get[axis]|default(-999)|float > printer.configfile.config["stepper_" ~ axis]["position_min]|float %}
-      {% set _ = allowed_axis.append(axis) %}
+* Try to make `params` optional using the `|default()` filter.
+* Try to first check and only then access.
+```nunjucks
+[gcode_macro TEMP_REPORT]
+description: Show current hotend temp
+gcode:
+    {% set extruder = params.EXTRUDER|default('extruder') %}
+    {% if extruder in printer %}
+        {% set temp = printer[extruder].temperature %}
+        RESPOND MSG="Hotend is {temp} °C"
+    {% else %}
+        RESPOND MSG="extruder not found"
     {% endif %}
-  {% endif %}
-{% endfor %}
-{% if 'x' in allowed_axis %}
-G0 X{params.X} 
-.....
 ```
+---
+# Syntax/style interlude
+Just like with many things in life, there isnt only a single path to the goal, the goal being, gcode commands echod to console.
+a small note on that however.
 
-
+as mentioned earlier, string in string out.
+Klippers parser is actually pretty simple. it splits on whitespace to get a parameter, and on = to get that value for that parameter.
+* `RESPOND MSG=hello` -> valid, no space to confuse it.
+* `RESPOND MSG="hello world"` -> valid, cause quotes contained it.
+* `RESPOND MSG='{"foo":42,"bar":"baz"}'` -> also valid (to the parameter parser! Not our template parser neither to jinja!)
+So why isnt it? how can i ensure i dont get a "malformed command"?
+theres many ways to get this work.
+- Jinjas `{% raw %}` tags (they treat the following content purely as "string" *(or also, ignore)*
+ `{% raw %}RESPOND MSG='{"foo": 42,"bar": "baz"}'{% endraw %}`
+- simply evaluating it with jinja. (many ways)
+  1. `"{'RESPOND MSG=' ~ {'foo': 42}}"`
+  2. `RESPOND MSG="{{'foo': 42}}"` *<- (one of the very few times youll see double curlies)*
+  3. `RESPOND MSG="{foo_dict}"` *(of course previously `{% set foo_dict = {'foo': 42} %}`)*
+What doesnt work and why
+  1. `RESPOND MSG={foo_dict}` -> {'foo':` `42}  *(klipper splits into the parameters `{'foo':`, `42` which is gibberish)*
+  2. `RESPOND MSG='{foo_dict}'` -> '{'foo': 42}'  *(not immediately obvious but `'{'`foo`': 42}'` are indeed bad quotes)*
+  3. *many many more....*
 ---
 
-## Advanced
+# Medium
+
+## 1   Delayed G‑code & persistent variables
+### Delayed G‑code 
+* Really nothing to add which isnt already covered by the [klipper documentation](https://www.klipper3d.org/Command_Templates.html#delayed-gcodes)
+
+### [SAVE\_VARIABLE](https://www.klipper3d.org/G-Codes.html#save_variables) / [SET\_GCODE\_VARIABLE](https://www.klipper3d.org/G-Codes.html#set_gcode_variable)
+---
+### SVF
+- stores arbitrary Python literals in your gcode macros variable or save variables files variables
+- often see referred to it as `svf`(save variable/s file) or `svv`(save variables variables)
+- once youve mastered parsing dicts, you may find yourself failing to save simple strings. that is because `VALUE="{yourstring}"` is not techincally a string... `VALUE="'{yourstring}'"` would be a string. *(you can escape quotes using `\'` or `\"` btw)*
+- *a small note on that save variables file. can be any type. (most common is variables.cfg) just make sure to not accidentally include that file in your printer.cfg or klipper will complain.*
+
+```nunjucks
+[gcode_macro STORE_VALUE]
+description: Remember the last Z offset
+gcode:
+  SAVE_VARIABLE VARIABLE=last_z VALUE={printer.toolhead.position.z}
+```
+*once again a small comment on that:*
+- *position is a coordinate type, that means `position[0]` == `position['x']` ≈≈ `position.x`*
+  - <sup>*(only ≈ because . lookup doesnt work with `|default()` as a fallback)*</sup>
+  
+Retrieve later:
+```nunjucks
+[gcode_macro SHOW_LAST_Z]
+description: Report stored Z offset
+gcode:
+  {% set z = printer.save_variables.last_z|default('unset') %}
+  RESPOND MSG="Last Z = {z}"
+```
 
 ### gcode variables
-```
+```nunjucks
 [gcode_macro CLEAN_NOZZLE]
-variable_cleaned: False
+variable_cleaned: False   # parsed as *boolean*
 gcode:
   {% if not cleaned %}
     _CLEAN_NOZZLE
+    SET_GCODE_VARIABLE MACRO=CLEAN_NOZZLE VARIABLE=cleaned VALUE=True 
   {% endif %}
-  SET_GCODE_VARIABLE MACRO=CLEAN_NOZZLE VARIABLE=cleaned VALUE={True}
+```
+* *If someone (you) fumbles one day and accidentally does `variable_cleaned: "False"` (a **string**) it will never clean because it is **truthy** – the `if not cleaned` guard will fail.  Watch out.*
 
-[gcode_macro PRINT_END]
+## 2   For‑loops, namespaces, mutables
+Presenting the power of filters, mutables, and the for loops which can profit insanely from them.
+- List *(works best with this example)*
+    ```nunjucks
+    {% set axis_params = [] %}
+    {% for axis in ['X','Y','Z'] if axis in params %}
+      {% set _ = axis_params.append(axis ~ '=' ~ params[axis]) %}
+    {% else %}
+      {action_raise_error("Please provide at least one of X, Y or Z")}
+    {% endfor %}
+    G0 {axis_params|join(' ')}
+    ```
+- Dict *(slighty more cursed, but gets the point across)*
+    ```nunjucks
+    {% set axis_params = {} %}
+    {% for axis in ['X','Y','Z'] if axis in params %}
+      {% set _ = axis_params.update({ axis: params[axis] }) %}
+    {% else %}
+      {action_raise_error("Please provide at least one of X, Y or Z")}
+    {% endfor %}
+    G0{% for a, v in axis_params.items() %} {' ' ~ a}={v}{% endfor %}
+    ```
+
+---
+
+# Advanced
+
+- Filters *(even worse example for this use case)*
+    ```nunjucks
+    {% set axis_params = params|dictsort|selectattr(0,'in',['X','Y','Z']) %}
+    G0 {axis_params|map('join','=')|join(' ')}
+    ```
+    1. **`dictsort`**
+       `[ ('X', 10), ('Y', 5.5), … ]`  
+       <sup>*Like `items`, but always sorted by key.*</sup>
+       
+    2. **`selectattr(0, 'in', ['X','Y','Z'])`**
+        selects all that have tuple index `0` == any of `X, Y, or Z.`
+       
+    3. **`map('join', '=')`**
+        `("X", 10)` -> `["X=10", "Y=5.5", ...]`
+       
+    4. **`join(' ')`**
+        joins the list with a space per entry. -> `"X=10 Y=5.5"`.
+       
+## 3   Reusable Jinja *macros*
+
+```nunjucks
+[gcode_macro GREET]
+description: Say hi
 gcode:
-  .....
-  SET_GCODE_VARIABLE MACRO=CLEAN_NOZZLE VARIABLE=cleaned VALUE={False}
-```
-*(to be or not to be.... You may be wondering... why is he evaluating `{False}`? because just `VALUE=False` would be the **string** "False" -> `variable_cleaned: 'False'` would be saved. not the actual boolean `False`. the string 'False' is **truish** in python/jinja that means, we are testing the variable `cleaned` to not be. but a string (non empty) is...)*
-
-### Advanced Variable Types
-ok so you can not only save strings in there then right? *yes* they are parsed as python literals.
-```
-{% dict_last_cleaned = {} %}
-{% set _ = dict_last_cleaned.update({'last_clean': printer.print_stats.info.current_layer|int}) %}
-{% set _ = dict_last_cleaned.update({'last_time': printer.toolhead.estimated_print_time|round(3)}) } %}
-SET_GCODE_VARIABLE MACRO=CLEAN_NOZZLE VARIABLE=cleaned VALUE={dict_last_cleaned}
-```
-=>
-```
-[gcode_macro CLEAN_NOZZLE]
-variable_cleaned: {'last_clean': 12, 'last_time': 1426.420}
-```
-to retrieve those, one may access them like `{% set cleaned = printer['gcode_macro CLEAN_NOZZLE'].cleaned %}`
-
-**VERY IMPORTANT ENDING NOTE**
-variables **MUST** always be all lowercase!
-
-### more jinja horrors
-- **macros** (reusable blocks of Jinja2 code)
-```jinja
-[gcode_macro HELLO_WORLD]
   {% macro greet(name) %}
     RESPOND MSG="Hello {name}!"
   {% endmacro %}
 
-{greet('World')}
+  {greet('World')}  
 ```
-// Hello World
+- gotchas
+  - macros return strings only, newlines are kept
+    - use `{%-` and / or `-%}` to trim unwanted newlines when capturing macro output into a variable.
+    - cast results back to types (`|float`, `|int`, or if you like suffering, use filters like `|map` to convert back to lists/dicts)
+    - hand in mutables (dict, list or namespaces)
+  - unlike gcode macros... these can call themself. be careful if you do intend to use this tho, maybe add a global that keeps track of depth and abort if too much (can stall klipper or crash the "execution").
+      
+---
+# Expert
 
-a couple gotchas with macros.
-- macros always return strings.
-- macros always return string (even the newlines!)
-- macros are only avalible in our current gcode macro. you cannot `import greet from HELLO_WORLD`
-- newlines only become an issue when you shove the result into variables, if you parse the result into commands as the example above does, klipper already cuts those.
+## 2   Direct object access
+(*but what about second printer?*)
+- `printer.printer` -> your actual main printer instance. the regular `printer` is just a `GetStatusWrapper` which pulls all the stuff from the klippy extras `get_status()` calls. it only lets you read what the extra wants you to read... how boring right?
+- since `printer.printer` is your highest level instance. you can access everything from it. all the internals of the klippy extras, all the objects defined which dont fall under the boring `int, float, string, list, dict....etc` now were actually playing with weird abstract python objects.
+- `reactor` is comperable to what the `printer` object is to our `printer.printer` of importance. its our main timing orchestrator. the first cool magic trick would be to call `reactor.monotonic()` to get its current value.
 
-what can we do about it?... whitespace control
-- `{%- set something = something -%}` will strip the newlines returned from a macro.
-- simply never return. you can use any mutable (`namespace`, `list`, `dict`) to hand into the macro, simply modify that instead and discard the mess of newlines returned.
-
-
-
-- **cycler**
-```jinja
-[gcode_macro SHAKE]
-  {% set direction = cycler(-1, 1) %}
-  {% for _ in range(20) %}
-    G0 X{direction}
-  {% endfor %}
-```
-G0 X-1... -> G0 X1..... ->G0 X-1.......
-(yeah... it cycles through the "list")
-
-- **joiner/lipsum** (not really needed but its there)
-```jinja
-{% set comma = joiner(', ') %}
-{% for param in params %}{comma()}{param}{% endfor %}
-```
--> X=1, Y=1, Z=1 
-(doesnt end in a comma, obmitted if last)
-`lipsum(n=3)` to generate lorem ipsum text
-
-
-
-
-
-### Save Variables & Delayed Gcode
-
-Saving state:
-
-```jinja
-SAVE_VARIABLE VARIABLE=my_setting VALUE="42" # the string 42
-SAVE_VARIABLE VARIABLE=my_setting VALUE={{}} # an empty dict.
+*(note: i am not a mathmagician)*
+```nunjucks 
+[gcode_macro PI]
+gcode:
+    {% set start_time, n = printer.printer.reactor.monotonic(), params.N|default(1000)|int %}
+    {% set ns = namespace(sum=0.0) %}
+    {% for i in range(n) %}
+        {% set term = 1.0 / (2 * i + 1) %}
+        {% set ns.sum = ns.sum + term * (1 if (i % 2 == 0) else -1) %}
+    {% endfor %}
+    {% set pi_val = ns.sum * 4 %}
+    {% set pi_str = '%.6f' % pi_val %}
+    {% set duration = printer.printer.reactor.monotonic() - start_time %}
+    {action_respond_info("Took: %.6f seconds" % duration)}
+    RESPOND MSG="Pi is just about {pi_str}"
 ```
 
-## Advanced Advanced
-
-### But what about *second printer*?
-
-Directly access Klipper objects and methods:
-*(this will blow your brains out)*
-```jinja
-{% set probe = printer.printer.lookup_object('probe') %}
-{% set toolhead = printer.printer.lookup_object('toolhead') %}
-{% set triggered = probe.mcu_probe.query_endstop(toolhead.get_last_move_time()) %}
-RESPOND MSG="Probe Triggered: {triggered}"
 ```
-Use with caution—direct object access is powerful and essentially equivalent to writing a klipper extra.
-for example (not that you should) one may use the above in an LED template to show the probe trigger status.
-issues comes in when youre trying to home, and realise that its messing with that too.
+                PI N=100000
+                Took: 0.116444 seconds
+                Pi is just about 3.141583
+```
 
 
 
+Powerful but possibly **dangerous**, it is closer to a klipper extra then it is to a simple macro.
 
+This section is the reason you may have trust issues from now on.
+```nunjucks
+[delayed_gcode ANGER_MANAGEMENT_TESTER]
+initial_duration: 0.1
+gcode:
+    {% if printer.toolhead.estimated_print_time < 1 %}
+        {% set next_run = range(2*3600, 16*3600)|random %}
+        UPDATE_DELAYED_GCODE ID=ANGER_MANAGEMENT_TESTER DURATION={next_run}
+    {% else %}
+        {% set _ = printer.printer.reactor.end() %}
+    {% endif %}
+```
+
+
+```nunjucks
+{% set probe        = printer.printer.lookup_object('probe') %}
+{% set toolhead     = printer.printer.lookup_object('toolhead') %}
+{% set is_triggered = probe.mcu_probe.query_endstop(toolhead.get_last_move_time()) %}
+RESPOND MSG="Probe triggered: {is_triggered}"
+```
+/\ 
+This seems very good, before you start playing, a note on this example specifically. `G28` will also require the endstop. if you run this macro whole youre homing, it will cause issues.
 
 ---
 
-### Wrapping Up
+### Full filter list 
 
-This guide provides you with the necessary knowledge to write powerful and dynamic Klipper configurations leveraging the full potential of Jinja2 templating. Happy macro crafting!
+`abs`, `attr`, `batch`, `capitalize`, `center`, `count`, `d`, `default`, `dictsort`, `e`, `escape`, `filesizeformat`, `first`, `float`, `forceescape`, `format`, `groupby`, `indent`, `int`, `items`, `join`, `last`, `length`, `list`, `lower`, `map`, `max`, `min`, `pprint`, `random`, `reject`, `rejectattr`, `replace`, `reverse`, `round`, `safe`, `select`, `selectattr`, `slice`, `sort`, `string`, `striptags`, `sum`, `title`, `tojson`, `trim`, `truncate`, `unique`, `upper`, `urlencode`, `urlize`, `wordcount`, `wordwrap`, `xmlattr`, `d`
+
+* **cycler** – alternate values:
+
+  ```nunjucks
+  {% set dir = cycler(-1, 1) %}
+  {% for _ in range(4) %} G0 X{dir} {% endfor %}
+  ```
+* **joiner** – print delimiter *except* after last item:
+
+  ```nunjucks
+  {% set comma = joiner(', ') %}
+  {% for k, v in params.items() %}{comma()}{k}={v}{% endfor %}
+  ```
+* `lipsum(n=3)` Lorem ipsum filler (i dunno...)
+
+### Further Reading
+* Klipper docs: `docs.klipper3d.org/Config_Reference.html#gcode_macro` ↗
+* Jinja 2 docs ↗
+* [Kevin O’Connor’s toolchanger extras](https://github.com/Klipper3d/klipper) ↗
+Happy macro crafting!
+
+
+
