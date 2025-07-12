@@ -14,7 +14,7 @@
 2. [Core objects: `printer`, `params`, `rawparams`](#2-core-objects)
 3. [Macro anatomy](#3-macro-anatomy)
 4. [Defensive techniques](#4-defensive-techniques)
-5. [Surprise Syntax/Style Interlude](#surprise-syntaxstyle-interlude)
+
 
 ### **Medium**
 
