@@ -1,1 +1,1 @@
-*.cfg linguist-language=nunjucks
+*.cfg linguist-language=jinja2
