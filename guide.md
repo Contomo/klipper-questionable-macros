@@ -99,13 +99,13 @@ theres many ways to get this work.
 - Jinjas `{% raw %}` tags (they treat the following content purely as "string" *(or also, ignore)*
  `{% raw %}RESPOND MSG='{"foo": 42,"bar": "baz"}'{% endraw %}`
 - simply evaluating it with jinja. (many ways)
-  1. `"{'RESPOND MSG=' ~ {'foo': 42}}"`
-  2. `RESPOND MSG="{{'foo': 42}}"` *<- (one of the very few times youll see double curlies)*
-  3. `RESPOND MSG="{foo_dict}"` *(of course previously `{% set foo_dict = {'foo': 42} %}`)*
-What doesnt work and why
-  1. `RESPOND MSG={foo_dict}` -> {'foo':` `42}  *(klipper splits into the parameters `{'foo':`, `42` which is gibberish)*
-  2. `RESPOND MSG='{foo_dict}'` -> '{'foo': 42}'  *(not immediately obvious but `'{'`foo`': 42}'` are indeed bad quotes)*
-  3. *many many more....*
+  - `"{'RESPOND MSG=' ~ {'foo': 42}}"`
+  - `RESPOND MSG="{{'foo': 42}}"` *<- (one of the very few times youll see double curlies)*
+  - `RESPOND MSG="{foo_dict}"` *(of course previously `{% set foo_dict = {'foo': 42} %}`)*
+- What doesnt work and why
+  - `RESPOND MSG={foo_dict}` -> {'foo':` `42}  *(klipper splits into the parameters `{'foo':`, `42` which is gibberish)*
+  - `RESPOND MSG='{foo_dict}'` -> '{'foo': 42}'  *(not immediately obvious but `'{'`foo`': 42}'` are indeed bad quotes)*
+  - *many many more....*
 ---
 
 # Medium
