@@ -19,7 +19,7 @@
 ### **Medium**
 
 1. [Delayed G-code & persistent variables](#1-delayed-gcode--persistent-variables)
-2. [For-loops, namespaces, mutables](#2-for-loops-namespaces-mutables)
+2. [For-loops, namespaces, mutables](#2-forloops-namespaces-mutables)
 
 ### **Advanced**
 
