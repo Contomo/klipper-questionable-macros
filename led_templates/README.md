@@ -146,7 +146,6 @@ text:
 
 Whats still missing but being worked on (here and there)
 - printer shutdown/error color
-- brightness scaling by idle time
 
 
 If you have any ideas/requsts/issues feel free to text me on discord, or open a `pull request` or `issue` here on github.
