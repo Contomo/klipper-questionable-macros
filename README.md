@@ -3,7 +3,7 @@
 
 # Klipper Macros & Jinja2 ‑ A Practical Guide
 
-> **Strings in ➜ Strings out.** Everything you feed Klipper is just text. Master that, and you master macros.
+> **Strings in ➜ Strings out.** Everything you feed Klipper and Jinja is just (con)text. Master that, and you master macros.
 
 ---
 ## Table of Contents
@@ -48,6 +48,7 @@ gcode:
   G28            # renders exactly this line
 ```
 Calling `HOME` just outputs `G28` to Klipper.
+<br>
 
 ### 2. Core objects
 Klipper provides special objects you can access within your macros:
@@ -57,6 +58,7 @@ Klipper provides special objects you can access within your macros:
 | `printer` | Snapshot of *everything*: config, sensors, toolhead, temps… (actual values) |
 | `params` | Dict of named arguments passed to your macro — **all values are strings**! |
 | `rawparams` | The raw text after the macro name (spaces included). |
+| `self` | context, cycler, action_respond_info() in there etc... *(we dont talk about **self** <sup>(yet)</sup>)* |
 
 ### 3. Macro anatomy
 Logic lives in `{% … %}`. Output placeholders use single braces `{ … }`.
@@ -86,11 +88,15 @@ gcode:
         RESPOND MSG="extruder not found"
     {% endif %}
 ```
+> *`|int` or `|int()` equally valid, most filters also take a `default` similarly to `|default()`* <br>
+> *`|int(default=-1)`, `|int(-1)` or `likely_an_int|int(none) is not none` => cast to int integer ok or failed.*
+
 ---
-> # Surprise Syntax/Style Interlude
->
-> Just like with many things in life, there isn’t only a single path to the goal—the goal being: G-code commands echoed to console. A quick note on how Klipper parses these:
->
+
+# Surprise Syntax/Style Interlude
+> [!TIP]
+> Just like with many things in life, there isn’t only a single path to the goal—the goal being: G-code commands echoed to console.<br>
+> A quick note on how Klipper parses these commands/parameters:
 > * It splits on `whitespace` or `*` for parameters, and on `=` for values.
 >
 > Examples:
@@ -106,11 +112,11 @@ gcode:
 > * Or evaluate with Jinja: *(with `{% set foo_dict = {'foo': 42} %}` done earlier)*
 >   * `RESPOND MSG="{foo_dict}"`  
 >   * `"{'RESPOND MSG=' ~ foo_dict}"`
->   * `RESPOND MSG="{{'foo': 42}}"` *<- one of the few times double curlys are valid*
+>   * `RESPOND MSG="{{'foo': 42}}"` *<- one of the very few times double curlys are valid*
 >
 > **What doesn’t work:**
->   * `RESPOND MSG={foo_dict}` -> gets split as `{'foo':`, `42}` (gibberish to Klipper)
->   * `RESPOND MSG='{foo_dict}'` -> becomes `'{'`foo`': 42}'` (bad quotes)
+>   * `RESPOND MSG={'foo': 42}` -> gets split as `{'foo':`, `42}` (gibberish to Klipper)
+>   * `RESPOND MSG='{'foo': 42}'` -> becomes `'{'`foo`': 42}'` (bad quotes)
 >   * ...and many more variants.
 >
 > **Tip:** Always keep in mind Klipper’s autism with spaces and improper quoting.
@@ -126,7 +132,9 @@ gcode:
 *   **Delayed G‑code**: Really nothing to add which isnt already covered by the [Klipper documentation](https://www.klipper3d.org/Command_Templates.html#delayed-gcodes).
 *   **Variable Storage**: Klipper offers two ways to store variables: `SET_GCODE_VARIABLE` for runtime state and `SAVE_VARIABLE` for persistent storage.
 
-**`SAVE_VARIABLE`**
+<br>
+ 
+**<ins>Save Variables variables</ins> (`SAVE_VARIABLE`)**<br>
 This stores Python literals in a separate file (e.g., `variables.cfg`), which persists after a restart. It's often referred to as `svf` (save variable file) or `svv` (save variables variables).
 ```nunjucks
 [gcode_macro STORE_VALUE]
@@ -147,7 +155,9 @@ gcode:
   RESPOND MSG="Last Z = {z}"
 ```
 
-**G-code variables (`SET_GCODE_VARIABLE`)**
+<br>
+
+**G-code variables (`SET_GCODE_VARIABLE`)**<br>
 These are stored within the macro's definition and reset on restart.
 ```nunjucks
 [gcode_macro CLEAN_NOZZLE]
@@ -159,6 +169,8 @@ gcode:
   {% endif %}
 ```
 > *If someone (you) fumbles one day and accidentally does `variable_cleaned: "False"` (a **string**) it will never clean because it is **truthy** – the `if not cleaned` guard will fail. Watch out.*
+
+<br>
 
 ### 2. For‑loops, namespaces, mutables
 This example uses a `for-else` loop to process axis parameters and raises an error if no valid axes are provided.
@@ -185,13 +197,13 @@ This example uses a `for-else` loop to process axis parameters and raises an err
 > *wait..  is that an `if` and `{% else %}` tag in a for loop? can i always use if/else?*
 >   - `else` kinda... yes. the else branch only runs if the for loop didnt run **at all**, if it ran once or more. never hit.
 >   - `if` yes. putting an if inside the for loop definition is a very clear way to show `{% break %}` (since there is no break for us, we can use a namespace flag, or the filling/emptying as a list to define a "stop" definition.
+  
+the always in a for loop present `loop.variables` can be found [here](continued-and-examples#for-loop)
 
 ---
 # Advanced
 
 ### 1. Writing reusable Jinja *macros*
-> **[See further examples](helpers)**
-
 Not to be confused with G-code macros, these are for reusable template logic.
   ```nunjucks
   [gcode_macro GREET]
@@ -208,6 +220,8 @@ Not to be confused with G-code macros, these are for reusable template logic.
    *   Macros can call themselves recursively. Be careful to avoid infinite loops, which can stall or crash Klipper.
 * **Cope:**
    * hand in mutables like dict, namespace or list modify them in place, and throw those newlines into the gcode output :P
+> **[See further examples](helpers)**
+<br>
 
 ### 2. Complex variable types & advanced filters
 - **Filters (even worse example for this use case)**
@@ -221,6 +235,10 @@ G0 {axis_params|map('join','=')|join(' ')}
 2.  **`selectattr(0, 'in', ['X','Y','Z'])`** -> selects all that have tuple index `0` == any of `X`, `Y`, or `Z`.
 3.  **`map('join', '=')`** -> `("X", 10)` becomes `["X=10", "Y=5.5", ...]`.
 4.  **`join(' ')`** -> joins the list with a space per entry, resulting in `"X=10 Y=5.5"`.
+
+> *looking for all [filters](continued-and-examples#filters) and their [tests](continued-and-examples#tests)? or what those 'generators' actually are?*
+<br>
+<br>
 
 ### 3. Direct object access
 > *(but what about second printer?)*
@@ -236,7 +254,9 @@ The standard `printer` object is a `GetStatusWrapper`, which pulls data from `ge
 {% set is_triggered = probe.mcu_probe.query_endstop(toolhead.get_last_move_time()) %}
 RESPOND MSG="Probe triggered: {is_triggered}"
 ```
-> **Note:** This is a powerful technique. Before you start playing, be aware that running this while another command (like `G28`) needs the same hardware will cause issues.
+> [!WARNING]
+> > This is a powerful technique. Before you start playing with it, be aware that running this, really is equivalent to an extra.<br>
+> > many things have safety precautions in place, but that doesnt guarantee you wont damage things on accident.
 
 ---
 # Creative Mode
@@ -265,8 +285,11 @@ gcode:
 > Took: 0.116444 seconds<br>
 > Pi is just about 3.141583
 
+<br>
 
-**If you made it until here, you should have no problems understanding what this does, if you don't, good job. if you do, i hope you have trust issues.**
+**If you made it until here, but dont understand what this does, i hope your trust issues keep you safe.**
+> [!CAUTION]
+> > *please dont actually add this to your config.*
 ```nunjucks
 [delayed_gcode ANGER_MANAGEMENT_TESTER]
 initial_duration: 0.1
@@ -279,9 +302,9 @@ gcode:
     {% endif %}
 ```
 
-### 2. Full filter list & Helpers
-This is the list of filters available in Klipper's sandboxed Jinja2 environment:
-`abs`, `attr`, `batch`, `capitalize`, `center`, `count`, `d`, `default`, `dictsort`, `e`, `escape`, `filesizeformat`, `first`, `float`, `forceescape`, `format`, `groupby`, `indent`, `int`, `items`, `join`, `last`, `length`, `list`, `lower`, `map`, `max`, `min`, `pprint`, `random`, `reject`, `rejectattr`, `replace`, `reverse`, `round`, `safe`, `select`, `selectattr`, `slice`, `sort`, `string`, `striptags`, `sum`, `title`, `tojson`, `trim`, `truncate`, `unique`, `upper`, `urlencode`, `urlize`, `wordcount`, `wordwrap`, `xmlattr`
+
+
+### 2. Helpers/Further
 
 *   **cycler** – alternate values:
     ```nunjucks
@@ -293,6 +316,10 @@ This is the list of filters available in Klipper's sandboxed Jinja2 environment:
     {% set comma = joiner(', ') %}
     {% for k, v in params.items() %}{% if comma.first %}{% endif %}{comma()}{k}={v}{% endfor %}
     ```
+
+while working on macros it can be useful to have a [cheat-sheet](continued-and-examples#cheat-sheet) around.
+For more specific examples check out the [specifics](/continued-and-examples#further-reading)
+
 
 ### 3. Further Reading
 *   Klipper docs: [`Config_Reference.html#gcode_macro`](https://www.klipper3d.org/Config_Reference.html#gcode_macro) ↗
