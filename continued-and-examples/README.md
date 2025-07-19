@@ -28,6 +28,8 @@ in here youll be finding things linked from the readme for further reading/speci
 | **misc/object/meta**    | `attr`, `indent`, `pprint`                                                                                                                 |
 | **other**               | `filesizeformat`                                                                                                                           |
 
+> todo: explain generators, specifcially show issues and usages of `selectattr` centered around "generator" 
+
 ---
 
 ### Tests
