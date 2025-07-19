@@ -9,6 +9,7 @@ in here youll be finding things linked from the readme for further reading/speci
 [Cheat Sheet](#Cheat-Sheet)
   - [Filters](#Filters)
   - [Tests](#Tests)
+  - [methods](#python/built-in-methods)
   - [Loop specifics](#For-loop)
 
 ## **Cheat Sheet**
@@ -48,8 +49,8 @@ in here youll be finding things linked from the readme for further reading/speci
 | `integer`                    | odd, even                             | Integer-specific tests               |
 | `divisibleby`                | number, float, int                    | Divisibility test                    |
 | `odd`, `even`                | integer                               | Oddness test                         |
-| `Identity`                   | `sameas`                              | Object identity (is the same object) |
-| `Containment`                | `in`                                  | Membership (item in container)       |
+| `sameas`                     |                                       | the same (refrence in memory!)       |
+| `in`                         | sequence, string                      | Membership (item in container)       |
 | `callable`, `filter`, `test` |                                       | filters, macros, functions           |
 | **Usual tests**              |                                       |                                      |
 | `Equality`                   | `==`, `eq`, `equalto`                 | Value equality                       |
@@ -62,7 +63,32 @@ in here youll be finding things linked from the readme for further reading/speci
 They are all just "tests", the table/list just shows a broad use case organization.
 for example, mapping, iterable, string are all sequences.
 
-comparison (pick your poison)
+**Specifics/common mistakes to avoid**
+- `number`<br>
+  number here refers to the type. `float` and `int` are numbers, `'0'` (the string) does not pass that test.
+  
+---
+
+### python/built in methods
+Since Jinja is purely string, and many things from klipper come in as strings (rawparams, params dictionary) some of the string methods can be very useful for us to convert between strings and types that are easier to work with.
+- `isdecimal`, `isdigit`, `isnumeric`: pretty similar, true or false, more like a test then a method.
+- 
+
+- `format`, `format_map`: .format(**data) == .format_map(data) *(see [value unpacking](url))*<br>
+  `"extruder: {extruder} is at {temp}°C".format(extruder='t1': temp=25.0)` -> `extruder: T1 is at 25°C`
+
+| **Type**       | **High Frequency / Essential**                                                                            | **Moderate Use**                                                                 | **Rare / Specialized**                                                                                                                                                                                                                                                                          |
+| -------------- | --------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **string**     | `strip`, `split`, `join`, `lower`, `upper`, `startswith`, `endswith`, `isdecimal`, `isdigit`, `isnumeric` | `capitalize`, `title`, `count`, `replace`, `format`, `zfill`, `rstrip`, `lstrip` | `encode`, `casefold`, `expandtabs`, `swapcase`, `translate`, `removeprefix`, `removesuffix`, `isascii`, `islower`, `isupper`, `istitle`, `isspace`, `isalpha`, `isalnum`, `isidentifier`, `isprintable`, `format_map`, `maketrans`, `rfind`, `rindex`, `ljust`, `rjust`, `splitlines`, `rsplit` |
+| **list**       | `append`, `pop`, `remove`, `index`, `count`, `clear`, `copy`                                              | `extend`, `sort`, `reverse`, `insert`                                            | —                                                                                                                                                                                                                                                                                               |
+| **dictionary** | `get`, `setdefault`, `pop`, `keys`, `items`, `values`, `update`, `clear`, `copy`                          | —                                                                                | `popitem`, `fromkeys`                                                                                                                                                                                                                                                                           |
+| **tuple**      | `index`, `count`                                                                                          | —                                                                                | —                                                                                                                                                                                                                                                                                               |
+| **int**        | `bit_length`, `bit_count`                                                                                 | `to_bytes`, `from_bytes`                                                         | `conjugate`, `as_integer_ratio`, `denominator`                                                                                                                                                                                                                                                  |
+| **float**      | `is_integer`                                                                                              | `hex`, `fromhex`                                                                 | `conjugate`, `as_integer_ratio`                                                                                                                                                                                                                                                                 |
+
+
+
+
 
 
 ---
