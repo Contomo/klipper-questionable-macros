@@ -22,12 +22,33 @@ in here youll be finding things linked from the readme for further reading/speci
 | ----------------------- | ------------------------------------------------------------------------------------------------------------------------------------------ |
 | **number**              | `abs`, `float`, `int`, `max`, `min`, `round`, `sum`                                                                                        |
 | **string**              | `trim`, `format`, `replace`, `upper`, `lower`, `center`, `string`, `striptags`, `title`, `truncate`, `capitalize`, `wordcount`, `wordwrap` |
-| **escaping/safety**     | `e`, `tojson`, `escape`, `forceescape`, `safe`, `urlencode`, `urlize`, `xmlattr`                                                           |
+| **escaping/safety**     | `e`, `tojson`, `xmlattr`, `escape`, `forceescape`, `safe`, `urlencode`, `urlize`                                                           |
 | **definedness/default** | `d`, `default`                                                                                                                             |
 | **sequence/collection** | `batch`, `count`, `first`, `groupby`, `items`, `last`, `length`, `list`, `map`, `random`, `reverse`, `slice`, `sort`, `unique`             |
 | **filtering/selecting** | `join`, `reject`, `rejectattr`, `select`, `selectattr`                                                                                     |
 | **misc/object/meta**    | `attr`, `indent`, `pprint`                                                                                                                 |
 | **other**               | `filesizeformat`                                                                                                                           |
+
+<br>
+
+If you read the readme you likely saw an example on how to [join those parameters](#2-complex-variable-types--advanced-filters) back into something usable.
+Here is a more practical example that uses filters.
+
+```nunjucks
+[gcode_macro ORIGINAL]
+rename_existing: OLD_ORIGINAL
+gcode:
+  {% set bar = params.pop('FOO', none) %}
+  {% if bar is not none %}
+    # your code before the other one runs
+  {% endif %}
+  THE_OLD_HIGHJACKED_MACRO {params|xmlattr}
+```
+
+> *(ORIGINAL)*     `FOO=2 BAZ="WEIRD STRING" FLOOP=11`<br>
+> *(params)* -> ` {'FOO': '2', 'BAZ': 'WEIRD STRING', 'FLOOP': '11'}`<br>
+> *(pop)* ->     `{'BAZ': 'WEIRD STRING', 'FLOOP': '11'}`<br>
+> *(xmlattr)* ->   `BAZ="WEIRD STRING" FLOOP="11"`<br>
 
 > todo: explain generators, specifcially show issues and usages of `selectattr` centered around "generator" 
 
@@ -66,6 +87,11 @@ for example, mapping, iterable, string are all sequences.
 **Specifics/common mistakes to avoid**
 - `number`<br>
   number here refers to the type. `float` and `int` are numbers, `'0'` (the string) does not pass that test.
+- `sequence`, `iterable`<br>
+  they can both come across as confusingly similar, iterable just means "can you for loop over this"<br>
+  a small note that, strings are sequences. you can access characters in a string with list index,<br>
+  which is also why the `in` test works. `if 'ber' in 'num`ber`'`
+
   
 ---
 
