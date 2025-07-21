@@ -18,7 +18,8 @@ An LED setup aimed for being as plug and play as possible. Automatically detecti
 **Functionality/Logic**
 -   Status detection works by estimation: homing is detected via out-of-bounds checks or "at homing speed" heuristics.
 -   QGL detection works reliably by checking if the toolhead is moving along the defined probe path.
--   Parked tools are considered "busy" if heating and "idle" otherwise.
+-   Parked tools are considered "busy" if heating, and 'ready' while idle otherwise (idle timeout -> 'idle').
+-   parked tools nozzles are 'ready', (idle timeout -> 'idle'), or representing temperature if heated.
 
 **Limitations**
 -   The LED update frequency is internally *(klipper)* limited to ~2Hz.
