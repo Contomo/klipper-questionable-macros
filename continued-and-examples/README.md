@@ -95,7 +95,7 @@ for example, mapping, iterable, string are all sequences.
   
 ---
 
-### python/built in methods
+### [python/built in methods](https://docs.python.org/3/library/stdtypes.html#str.format)
 Since Jinja is purely string, and many things from klipper come in as strings (rawparams, params dictionary) some of the string methods can be very useful for us to convert between strings and types that are easier to work with.
 - `isdecimal`, `isdigit`, `isnumeric`: pretty similar, true or false, more like a test then a method.
 - 
