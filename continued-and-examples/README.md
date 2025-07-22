@@ -119,19 +119,17 @@ Since Jinja is purely string, and many things from klipper come in as strings (r
 
 ---
 
-### For loop
+### For loop ([best read that stuff here](https://jinja.palletsprojects.com/en/stable/templates/#for))
 
 things in a for loop:
-| **Variable**      | **Description**                           |
-| ----------------- | ----------------------------------------- |
-| `loop.index`      | 1-based index                             |
-| `loop.index0`     | 0-based index                             |
-| `loop.revindex`   | 1-based reverse index                     |
-| `loop.revindex0`  | 0-based reverse index                     |
-| `loop.first`      | `true` if first iteration                 |
-| `loop.last`       | `true` if last iteration                  |
-| `loop.length`     | total number of items in the sequence     |
-| `loop.cycle(...)` | cycling helper (e.g., alternating values) |
+| **Variable**            | **Description**                           |
+| ----------------------- | ----------------------------------------- |
+| `loop.index`, `loop.revindex`       | 1-based (reverse)index        |
+| `loop.index0`, `loop.revindex0`     | 0-based (reverse)index        |
+| `loop.first`, `loop.last`           | `true`/`false`                |
+| `loop.previtem`, `loop.nextitem`    | `ìtem`/`undefined`            |
+| `loop.length`           | total number of items in the sequence     |
+| `loop.cycle(...)`       | cycling helper (e.g., alternating values) |
 
 
 
