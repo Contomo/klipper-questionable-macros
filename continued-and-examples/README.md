@@ -5,6 +5,10 @@ in here youll be finding things linked from the readme for further reading/speci
 ---
 
 
+* `printer`, `eventtime`, and `cache` are the only "real" (non-dunder) attributes—expected in Klipper’s root object.
+
+
+
 
 [Cheat Sheet](#Cheat-Sheet)
   - [Filters](#Filters)
@@ -50,8 +54,34 @@ gcode:
 > *(pop)* ->     `{'BAZ': 'WEIRD STRING', 'FLOOP': '11'}`<br>
 > *(xmlattr)* ->   `BAZ="WEIRD STRING" FLOOP="11"`<br>
 
-> todo: explain generators, specifcially show issues and usages of `selectattr` centered around "generator" 
+[KAMP](https://github.com/kyleisah/Klipper-Adaptive-Meshing-Purging/blob/b0dad8ec9ee31cb644b94e39d4b8a8fb9d6c9ba0/Configuration/Smart_Park.cfg#L13-L15)
+has a good example of how one can compress many iterative lines down into some single filters.<br>
+(`{% set all_points = printer.exclude_object.objects | map(attribute='polygon') | sum(start=[]) %}`)
 
+---
+
+### generators
+generators are whats being returned when you do a filter call like "select" or "cycle",<br>
+they are like **a stable platonic coworker relationship**
+- Interaction is one-pass and shallow by design.
+- appear to be a list or dict at a distance, but are neither.
+- Not meant for introspection or serialization.
+- are purely theoretical
+- For anything deeper or repeatable, convert to a list.
+  
+<br>
+
+ie:
+ - `some_list|select|string` -> `<generator object selectattr at 0x7f0b...>` <br>
+<br>
+
+> Some internals would be:
+> - `send`, `throw`, `close`<br>
+>   *(Used to interact with Python generators “from outside” (advanced control flow))*
+> - `gi_code` `gi_yieldfrom` `gi_running` `gi_frame` `gi_suspended`<br>
+>     *(Introspection for debugging tools, not end-user code.)*
+> None of them however serve any purpose for our context here.
+    
 ---
 
 ### Tests
