@@ -120,8 +120,8 @@ gcode:
 >   * ...and many more variants.
 >
 > **Tip:** Always keep in mind Klipper’s autism with spaces and improper quoting.
->   * use `|tojson()` to `"` -> `'` so that when you add those `"` they dont get closed prematurely.
->   * use `|pprint()` to convert it into an escaped format.
+>   * use `{'foo':42,'bar':'baz'}|tojson()` -> `{"foo":42,"bar":"baz"}`
+>   * use `{"foo":42,"bar":"baz"}|pprint()` -> `{'foo':42,'bar':'baz'}`
 
 
 
