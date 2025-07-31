@@ -119,9 +119,16 @@ gcode:
 >   * `RESPOND MSG='{'foo': 42}'` -> becomes `'{'`foo`': 42}'` (bad quotes)
 >   * ...and many more variants.
 >
-> **Tip:** Always keep in mind Klipper’s autism with spaces and improper quoting.
->   * use `{'foo':42,'bar':'baz'}|tojson()` -> `{"foo":42,"bar":"baz"}`
->   * use `{"foo":42,"bar":"baz"}|pprint()` -> `{'foo':42,'bar':'baz'}`
+> **Tip:** Always keep in mind Klipper’s autism with spaces and improper quoting, my recommendation `|tojson` *(`|pprint` works too... but has some issues)*.<br>
+> `{'foo':42,'bar':'baz'}|tojson()`
+> ```
+> {"foo":42,"bar":"baz"}`
+> ```
+> `{'foo':42,'bar':'baz'}|pprint()`
+> ```
+> {'foo':42,
+> 'bar':'baz'}
+> ```
 
 
 
