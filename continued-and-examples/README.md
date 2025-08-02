@@ -163,4 +163,51 @@ things in a for loop:
 
 
 
+---
 
+## Is jinja eating away at your mind?
+
+Why not attatch some things for import into the env.<br>
+Feel free to wipe your entire file system from within the comforts of a gcode macro!
+
+```nunjucks
+[gcode_macro _REGISTER_MODULES_AT_START]
+variable_val: {}
+gcode:
+    {% if not val %}
+        {% set wanted = [ 'time','os','sys','math','random',
+                          'itertools','functools','re',
+                          'json','logging','numpy'] %}
+        {% set env   = printer.printer.lookup_object('gcode_macro').env %}
+        {% set gbl   = printer.printer.__class__.__init__.__globals__ %}
+        {% set ilib  = gbl.importlib %}
+        {% set ok, err = [], [] %}
+        {% for m in wanted %}
+            {% set spec = ilib.util.find_spec(m) %}
+            {% set mod  = gbl.get(m) if m in gbl else (ilib.import_module(m) if spec else None) %}
+            {% if mod is not none %}
+                {% set _ = env.globals.update({m: mod}) %}
+                {% set _ = ok.append(' - \'' ~ m ~ '\'') %}
+            {% else %}
+                {% set _ = err.append(' - \'' ~ m ~ '\'') %}
+            {% endif %}
+        {% endfor %}
+        {% set va = {'ok': ok, 'err': err}|string|replace('"', '\\"') %}
+        SET_GCODE_VARIABLE MACRO=_REGISTER_MODULES_AT_START VARIABLE=val VALUE="{va}"
+        UPDATE_DELAYED_GCODE ID=_REGISTER_MODULES_AT_START DURATION=1
+    {% else %}
+         {% set html = "<details><summary>registered: " ~ val.ok|length ~ "</summary>"
+                ~ val.ok|join("<br>") ~ "</details>"
+                ~ (val.err and "<details><summary>failed: " ~ val.err|length ~ "</summary>"
+                ~ val.err|join('<br>') ~ "</details>" or "") %}
+        {action_respond_info(html)}
+    {% endif %}
+
+[delayed_gcode _REGISTER_MODULES_AT_START]
+initial_duration: 0.01
+gcode:
+    _REGISTER_MODULES_AT_START
+
+```
+and with that, import math, be creative, turn your bed mesh heightmap display into a full fledged version of matplotlib...<br>*or whatever people actually use that stuff for* <br>
+<img width="445" height="338" alt="image" src="https://github.com/user-attachments/assets/3dcbd293-e149-47fb-9698-a4f8abef1ba9" />
