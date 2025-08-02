@@ -8,7 +8,10 @@ in here youll be finding things linked from the readme for further reading/speci
 * `printer`, `eventtime`, and `cache` are the only "real" (non-dunder) attributes—expected in Klipper’s root object.
 
 
-
+[Build macros and or klippy extras](#Further)
+  - [SEARCH](#SEARCH)
+  - [INSPECT_OBJECT](#INSPECT_OBJECT)
+  - [DEBUG_OUTPUT](#DEBUG_OUTPUT)
 
 [Cheat Sheet](#Cheat-Sheet)
   - [Filters](#Filters)
@@ -164,6 +167,21 @@ things in a for loop:
 
 
 ---
+
+# Further
+
+### DEBUG_OUTPUT
+
+
+### SEARCH
+> <img width="486" height="512" alt="image" src="https://github.com/user-attachments/assets/7ec7c4e3-b716-4669-9b61-58bda5fd4dc5" />
+
+
+
+### INSPECT_OBJECT
+
+> <img width="739" height="878" alt="image" src="https://github.com/user-attachments/assets/f597f9e5-d1a2-4acd-b54c-05b58bf6ff37" />
+
 
 ## Is jinja eating away at your mind?
 
