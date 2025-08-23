@@ -227,5 +227,5 @@ gcode:
     _REGISTER_MODULES_AT_START
 
 ```
-and with that, import math, be creative, turn your bed mesh heightmap display into a full fledged version of matplotlib...<br>*or whatever people actually use that stuff for* <br>
+and with that, import math, be creative, turn your bed mesh heightmap display into a full fledged version of matplotlib (or print matplotlib svgs to console :P)...<br>*whatever people actually use that stuff for* <br>
 <img width="445" height="338" alt="image" src="https://github.com/user-attachments/assets/3dcbd293-e149-47fb-9698-a4f8abef1ba9" />
