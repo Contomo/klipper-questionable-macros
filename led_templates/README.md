@@ -78,8 +78,7 @@ Where here:
  - `brightness`:
    - the brigness "scalar" assigned to the indicies in that `idx` list
    - similarly to the color order definition in your neopixel section, may also be omitted, or just one (to scale all assigned idx's)
- 
-> *FYI the `_<short_name>_vars` macro is called once each of its templates is loaded, just in case you have any use for it.*
+
 
 ---
 
