@@ -142,10 +142,25 @@ text:
 
 ---
 
-## TODO
+## led_effect
 
-Whats still missing but being worked on (here and there)
-- printer shutdown/error color
+> A small note on custom templates. this is merely a system to switch to preconfigured "templates" and or static colors.  
+> nothing is should prevent you from making a template which calls the common `led_effects` extra.
 
+So for example:
+(this kinda sucks because of how led_effect works but...)
+
+```
+[display_template rainbow]
+param_tn: -1
+text:
+  {% if param_tn == 0 %}
+     SET_LED_EFFECT EFFECT=rainbow_T0 REPLACE=1
+  ....
+```
+
+This however is untested. if you do test it, let me know.
+
+---
 
 If you have any ideas/requsts/issues feel free to text me on discord, or open a `pull request` or `issue` here on github.
