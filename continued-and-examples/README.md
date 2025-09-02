@@ -182,6 +182,27 @@ things in a for loop:
 
 > <img width="739" height="878" alt="image" src="https://github.com/user-attachments/assets/f597f9e5-d1a2-4acd-b54c-05b58bf6ff37" />
 
+### GCODE_SHELL *(the other one)*
+`SHX` executes synchronously and can block klipper, `SHXB` executes async, and logs to file.  
+
+`SHXB` example to execute shell command:
+```
+SHXB ACTION=START CMD="uname -a"
+> SHXB START id=1756775679507 log=/tmp/shxb_1756775679507.log
+SHXB ACTION=PEEK ID=1756775679507
+> __SHXB_DONE__ rc=0
+> Linux Voron 6.12.0-current-rockchip-rk3588 #3 SMP PREEMPT Sun Nov 17 22:15:08 UTC 2024 aarch64 GNU/Linux
+> SHXB PEEK id=1756775679507 done=1
+```
+`SHXB` example to execute file with args supplied:
+```
+SHXB ACTION=START PATH="/usr/bin/printf" ARGS="'%s\n' Hello_from_printf"  
+> SHXB START id=1756774917931 log=/tmp/shxb_1756774917931.log
+SHXB ACTION=PEEK ID=1756774917931 TRUNC=800  
+> SHXB PEEK id=1756774917931 done=1  
+> __SHXB_DONE__ rc=0  
+> Hello_from_printf  
+```
 
 ## Is jinja eating away at your mind?
 
