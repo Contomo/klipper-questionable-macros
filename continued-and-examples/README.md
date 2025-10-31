@@ -172,11 +172,24 @@ things in a for loop:
 
 ### DEBUG_OUTPUT
 
+```
+DEBUG_OUTPUT FOO="(1|int + 2|int)"
+DEBUG_OUTPUT HELLO="{ action_respond_info('WORLD') }"
+or: DEBUG_OUTPUT MACRO=SOME_MACRO EXEC=<0|1>...
+     to evaluate and test the output of a gcode macro.
+```
+
+`EXEC=<0|1>` here just means do you want to forward `SET_GCODE_VARIABLE` so your gcode macro, if using these, is fooled into working/maintaining state.
+All other gcode commands are still only displayed in the textbox.
+critically, some UI commands will be forwarded automatically for testing.
+
+> <img width="719" height="326" alt="image" src="https://github.com/user-attachments/assets/10fea303-1e15-42c0-bc4b-2b65377ac4e3" />
+
+
 
 ### SEARCH
+
 > <img width="486" height="512" alt="image" src="https://github.com/user-attachments/assets/7ec7c4e3-b716-4669-9b61-58bda5fd4dc5" />
-
-
 
 ### INSPECT_OBJECT
 
