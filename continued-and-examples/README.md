@@ -9,6 +9,7 @@ in here youll be finding things linked from the readme for further reading/speci
 
 
 [Build macros and or klippy extras](#Further)
+  - [DOC_DUMP](#DOC_DUMP)
   - [SEARCH](#SEARCH)
   - [INSPECT_OBJECT](#INSPECT_OBJECT)
   - [DEBUG_OUTPUT](#DEBUG_OUTPUT)
@@ -185,6 +186,11 @@ critically, some UI commands will be forwarded automatically for testing.
 
 > <img width="719" height="326" alt="image" src="https://github.com/user-attachments/assets/10fea303-1e15-42c0-bc4b-2b65377ac4e3" />
 
+### DOC_DUMP
+
+Easily search everything avalible and usage/docs in your jinja env/scope.
+
+> <img width="653" height="417" alt="image" src="https://github.com/user-attachments/assets/511fcd3e-4f3c-49e5-8174-17806ab5c213" />
 
 
 ### SEARCH
